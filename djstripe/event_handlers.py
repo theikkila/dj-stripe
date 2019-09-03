@@ -117,7 +117,8 @@ def customer_subscription_webhook_handler(event):
 @webhooks.handler("payment_method.detached")
 def detach_payment_method_from_customer(event):
     data = event.data
-    for method in models.PaymentMethod.objects.filter(id=data['id']):
+    object = data['object']
+    for method in models.PaymentMethod.objects.filter(id=object['id']):
         method.customer = None
         method.save()
 
@@ -127,7 +128,8 @@ def detach_payment_method_from_customer(event):
 )
 def update_payment_method(event):
     data = event.data
-    for method in models.PaymentMethod.objects.filter(id=data['id']):
+    object = data['object']
+    for method in models.PaymentMethod.objects.filter(id=object['id']):
         method.sync_from_stripe_data(data)
         method.save()
 
