@@ -129,15 +129,16 @@ def detach_payment_method_from_customer(event):
 def update_payment_method(event):
     data = event.data
     object = data['object']
-    for method in models.PaymentMethod.objects.filter(id=object['id']):
-        method.sync_from_stripe_data(data)
-        method.save()
+    #for method in models.PaymentMethod.objects.filter(id=object['id']):
+    method = models.PaymentMethod.sync_from_stripe_data(object)
+    method.save()
 
 @webhooks.handler("payment_method.attached")
 def attach_payment_method_from_customer(event):
     data = event.data
+    object = data['object']
     #id = data.get("object", {}).get("id", None)
-    m = models.PaymentMethod.sync_from_stripe_data(data)
+    m = models.PaymentMethod.sync_from_stripe_data(object)
     m.save()
 
 @webhooks.handler(
