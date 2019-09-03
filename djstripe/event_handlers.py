@@ -114,6 +114,30 @@ def customer_subscription_webhook_handler(event):
     _handle_crud_like_event(target_cls=models.Subscription, event=event)
 
 
+@webhooks.handler("payment_method.detached")
+def detach_payment_method_from_customer(event):
+    data = event.data
+    for method in models.PaymentMethod.object.filter(id=data['id']):
+        method.customer = None
+        method.save()
+
+@webhooks.handler(
+    "payment_method.card_automatically_updated",
+    "payment_method.updated",
+)
+def update_payment_method(event):
+    data = event.data
+    for method in models.PaymentMethod.object.filter(id=data['id']):
+        method.sync_from_stripe_data(data)
+        method.save()
+
+@webhooks.handler("payment_method.attached")
+def attach_payment_method_from_customer(event):
+    data = event.data
+    #id = data.get("object", {}).get("id", None)
+    m = models.PaymentMethod.sync_from_stripe_data(data)
+    m.save()
+
 @webhooks.handler(
     "transfer",
     "charge",
@@ -121,7 +145,7 @@ def customer_subscription_webhook_handler(event):
     "invoice",
     "invoiceitem",
     "payment_intent",
-    "payment_method",
+    #"payment_method",
     "plan",
     "product",
     "setup_intent",
